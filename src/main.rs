@@ -28,7 +28,7 @@ async fn pubsub() {
 
 pub fn publish_message() {
     let client = redis::Client::open(
-        "redis://nonprod-dev-redis-unicorn.qlyada.ng.0001.apse1.cache.amazonaws.com",
+        "",
     )
     .unwrap();
     let mut conn = client.get_connection().unwrap();
@@ -38,7 +38,7 @@ pub fn publish_message() {
 }
 pub fn subscribe() {
     let client = redis::Client::open(
-        "redis://nonprod-dev-redis-unicorn.qlyada.ng.0001.apse1.cache.amazonaws.com",
+        "",
     )
     .unwrap();
     thread::spawn(move || {
