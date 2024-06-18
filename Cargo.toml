@@ -1,0 +1,23 @@
+[package]
+name = "sharestate"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = "0.7.5"
+redis = "0.25.4"
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.117"
+tokio = { version = "1.38.0", features = ["full"] }
+
+[profile.dev]
+debug = true
+
+[profile.release]
+debug = false
+codegen-units = 1
+lto = false
+opt-level = "z"
+
+[build]
+rustflags = ["-C", "target-cpu=native", "link-arg=-fuse-ld=lld"]
