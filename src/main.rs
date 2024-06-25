@@ -11,7 +11,7 @@ async fn main() {
     println!("Start Application");
     let global = Global::new(&vec![]);
     let state = Arc::new(global);
-    subscribe();
+    subscribe(State(state.clone()));
     let app = Router::new()
         .route("/pubsub", get(pubsub))
         .route("/add", get(add))
@@ -27,26 +27,27 @@ async fn pubsub() {
 }
 
 pub fn publish_message() {
-    let client = redis::Client::open(
-        "",
-    )
-    .unwrap();
+    let redis_url = "redis://127.0.0.1/";
+    let client = redis::Client::open(redis_url).unwrap();
     let mut conn = client.get_connection().unwrap();
     let _: () = conn
-        .publish("promotions".to_string(), "Hello".to_string())
+        .publish("promotions".to_string(), 1.to_string())
         .unwrap();
 }
-pub fn subscribe() {
-    let client = redis::Client::open(
-        "",
-    )
-    .unwrap();
+pub fn subscribe(State(state): State<Arc<Global>>) {
+    let redis_url = "redis://127.0.0.1/";
+    let client = redis::Client::open(redis_url).unwrap();
+    let mut conn = client.get_connection().unwrap();
     thread::spawn(move || {
-        let mut conn = client.get_connection().unwrap();
         conn.subscribe(&["promotions".to_string()], |msg| {
             let ch = msg.get_channel_name();
             let payload: String = msg.get_payload().unwrap();
             println!("{:?}, {:?}", ch, payload);
+
+            let promotion: state::promotion::State = state::promotion::State { promotion_id: payload.trim().parse().unwrap() };
+            let mut global = state.promotions.lock().unwrap();
+            global.push(promotion);
+            
             ControlFlow::<String>::Continue
         })
         .unwrap();
